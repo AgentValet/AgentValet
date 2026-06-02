@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="360" viewBox="0 0 1280 360">
+<defs>
+<linearGradient id="gHead" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7fb0ff"/><stop offset="0.55" stop-color="#8b9bff"/><stop offset="1" stop-color="#b07df0"/></linearGradient>
+<linearGradient id="gKey" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b9bff"/><stop offset="1" stop-color="#6366f1"/></linearGradient>
+<linearGradient id="gTile" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3b82f6"/><stop offset="1" stop-color="#a855f7"/></linearGradient>
+<radialGradient id="glow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#3b82f6" stop-opacity="0.4"/><stop offset="0.55" stop-color="#6366f1" stop-opacity="0.1"/><stop offset="1" stop-color="#6366f1" stop-opacity="0"/></radialGradient>
+<radialGradient id="topglow" cx="0.8" cy="0" r="0.95"><stop offset="0" stop-color="#1b2c52" stop-opacity="0.85"/><stop offset="1" stop-color="#080f1e" stop-opacity="0"/></radialGradient>
+<pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1.1" fill="#fff" opacity="0.045"/></pattern>
+<filter id="kg" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="14"/></filter>
+</defs>
+<rect width="1280" height="360" fill="#080f1e"/><rect width="1280" height="360" fill="url(#dots)"/><rect width="1280" height="360" fill="url(#topglow)"/>
+<rect x="0.5" y="0.5" width="1279" height="359" fill="none" stroke="rgba(255,255,255,0.06)"/>
+<ellipse cx="1040" cy="175" rx="270" ry="220" fill="url(#glow)"/>
+<g opacity="0.5" filter="url(#kg)" transform="translate(1040,168) rotate(-26) scale(1.05) translate(-130,-57)" fill="#3b82f6"><path fill-rule="evenodd" d="M58 16 a48 48 0 1 0 0.01 0 Z M58 42 a22 22 0 1 0 0.01 0 Z"/>
+<rect x="96" y="53" width="158" height="22" rx="11"/><rect x="206" y="71" width="14" height="26" rx="4"/><rect x="232" y="71" width="15" height="16" rx="4"/></g>
+<g transform="translate(1040,168) rotate(-26) scale(1.05) translate(-130,-57)" fill="url(#gKey)"><path fill-rule="evenodd" d="M58 16 a48 48 0 1 0 0.01 0 Z M58 42 a22 22 0 1 0 0.01 0 Z"/>
+<rect x="96" y="53" width="158" height="22" rx="11"/><rect x="206" y="71" width="14" height="26" rx="4"/><rect x="232" y="71" width="15" height="16" rx="4"/></g>
+<g transform="translate(66,40)"><rect width="38" height="38" rx="10" fill="#111d35" stroke="rgba(255,255,255,0.14)"/>
+<g transform="translate(6.5,8.5) scale(0.44)" fill="url(#gTile)"><path fill-rule="evenodd" d="M20 2 a16 16 0 1 0 0.01 0 Z M20 11 a7 7 0 1 0 0.01 0 Z"/><rect x="33" y="14.5" width="40" height="11" rx="5.5"/><rect x="60" y="23" width="8" height="12" rx="2.5"/></g>
+<text x="51" y="26" font-family="AV ITight XBold" font-size="24" fill="rgba(255,255,255,0.94)" letter-spacing="-0.3">AgentValet</text></g>
+<text x="66" y="128" font-family="AV Mono Medium" font-size="13" fill="#3b82f6" letter-spacing="2.2">IGA FOR AI AGENTS · IETF AIMS-COMPLIANT</text>
+<text x="64" y="186" font-family="AV ITight XBold" font-size="46" letter-spacing="-1.2"><tspan fill="url(#gHead)">The valet key</tspan><tspan fill="rgba(255,255,255,0.94)"> for AI agents.</tspan></text>
+<text x="66" y="216" font-family="AV ITight Regular" font-size="17" fill="rgba(255,255,255,0.56)">Identity, credential governance &amp; MCP proxy. One revoke kills access instantly.</text>
+<g transform="translate(66,232)"><rect width="88" height="32" rx="16" fill="#0d1526" stroke="rgba(255,255,255,0.14)"/><circle cx="17" cy="16" r="3.2" fill="#3b82f6"/><text x="30" y="21.5" font-family="AV Mono Regular" font-size="14" fill="rgba(255,255,255,0.56)" letter-spacing="0.4">SPIFFE</text></g><g transform="translate(165,232)"><rect width="106" height="32" rx="16" fill="#0d1526" stroke="rgba(255,255,255,0.14)"/><circle cx="17" cy="16" r="3.2" fill="#6366f1"/><text x="30" y="21.5" font-family="AV Mono Regular" font-size="14" fill="rgba(255,255,255,0.56)" letter-spacing="0.4">RFC 7591</text></g><g transform="translate(282,232)"><rect width="97" height="32" rx="16" fill="#0d1526" stroke="rgba(255,255,255,0.14)"/><circle cx="17" cy="16" r="3.2" fill="#a855f7"/><text x="30" y="21.5" font-family="AV Mono Regular" font-size="14" fill="rgba(255,255,255,0.56)" letter-spacing="0.4">AuthZEN</text></g><g transform="translate(390,232)"><rect width="70" height="32" rx="16" fill="#0d1526" stroke="rgba(255,255,255,0.14)"/><circle cx="17" cy="16" r="3.2" fill="#22c55e"/><text x="30" y="21.5" font-family="AV Mono Regular" font-size="14" fill="rgba(255,255,255,0.56)" letter-spacing="0.4">CIBA</text></g>
+<g transform="translate(66,282)"><rect width="356" height="44" rx="11" fill="#0d1526" stroke="rgba(255,255,255,0.14)"/><circle cx="21" cy="22" r="4.2" fill="#22c55e"/>
+<text x="38" y="28" font-family="AV Mono Medium" font-size="17"><tspan fill="rgba(255,255,255,0.38)">$ </tspan><tspan fill="rgba(255,255,255,0.56)">npx </tspan><tspan fill="rgba(255,255,255,0.94)">@agentvalet/register</tspan></text></g>
+</svg>
