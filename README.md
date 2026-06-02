@@ -19,7 +19,7 @@ Identity and credential governance broker for AI agents and MCP servers. It give
 **Open core.** This repo holds the open-source MIT-licensed client surface: the MCP server, the CLI, the Claude Desktop bundle, and the runtime adapters. The managed proxy runs the credential vault, the policy engine, and the audit store. A self-host reference for the proxy is on the roadmap.
 
 <!-- TODO: add the awesome-mcp-servers listing link once the PR is merged: https://github.com/punkpeye/awesome-mcp-servers/pull/{{PR_NUMBER}} -->
-Live at [agentvalet.ai](https://agentvalet.ai).
+Live at [agentvalet.ai](https://agentvalet.ai). Docs at [docs.agentvalet.ai](https://docs.agentvalet.ai).
 
 ## Quickstart
 
