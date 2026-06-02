@@ -29,6 +29,29 @@ npx @agentvalet/register
 
 That generates an RS256 keypair for your agent, registers it, and wires up the config. The private key never leaves your machine. From then on your agent signs a short-lived JWT per request and calls platforms through the AgentValet proxy. Approve the agent in the dashboard, grant it scopes, and you are running.
 
+## Use as an MCP server
+
+`npx @agentvalet/register` writes this block into your client's MCP config for you. To wire it up by hand — in Claude Desktop, Claude Code, Cursor, or any MCP-compatible client — add:
+
+```json
+{
+  "mcpServers": {
+    "agentvalet": {
+      "command": "npx",
+      "args": ["-y", "@agentvalet/mcp-server"],
+      "env": {
+        "AGENT_ID": "agt_your_agent_id",
+        "OWNER_ID": "your_owner_id",
+        "PROXY_URL": "https://api.agentvalet.ai",
+        "AGENT_PRIVATE_KEY_PATH": "~/.agentvalet/agent.key"
+      }
+    }
+  }
+}
+```
+
+The server exposes seven tools: `list_platforms`, `use_platform`, `authzen_evaluate`, `agent_register`, `agent_status`, `list_my_pending_actions`, and `report_self_diagnostic`. The private key is read from `AGENT_PRIVATE_KEY_PATH` and never leaves your machine; every platform call goes through the proxy with scope checks, audit logging, and human approval on the actions that matter.
+
 ## The problem: credential inheritance
 
 Credential inheritance is what happens when an AI agent runs on your credentials instead of its own. The moment a token lands in `.mcp.json` or an environment variable, every agent in that project inherits the full reach of that token. It can do anything you can do, on every platform the token touches, and nothing records which agent did what.
