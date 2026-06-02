@@ -1,0 +1,19 @@
+{
+  "name": "@agentvalet/mcpb",
+  "version": "1.0.3",
+  "private": true,
+  "description": "MCPB bundle for AgentValet — one-click install in Claude Desktop",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "pack": "mcpb pack build agentvalet.mcpb",
+    "release": "node scripts/release.mjs",
+    "release:no-bump": "node scripts/release.mjs --no-bump",
+    "validate": "mcpb validate build/manifest.json",
+    "info": "mcpb info agentvalet.mcpb",
+    "clean": "node scripts/clean.mjs"
+  },
+  "devDependencies": {
+    "@anthropic-ai/mcpb": "^2.1.2"
+  }
+}

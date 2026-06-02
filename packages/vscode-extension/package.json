@@ -1,0 +1,80 @@
+{
+  "name": "agentvalet-vscode",
+  "displayName": "AgentValet",
+  "description": "Secure credential proxy and governance for AI agents. Register your agent in one click.",
+  "version": "0.1.0",
+  "publisher": "agentvalet",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["AI", "Other"],
+  "keywords": ["ai", "agents", "credentials", "proxy", "governance"],
+  "icon": "assets/icon.png",
+  "galleryBanner": {
+    "color": "#0f1117",
+    "theme": "dark"
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "agentvalet.register",
+        "title": "AgentValet: Register this workspace as an agent"
+      },
+      {
+        "command": "agentvalet.openDashboard",
+        "title": "AgentValet: Open dashboard"
+      },
+      {
+        "command": "agentvalet.showStatus",
+        "title": "AgentValet: Show agent status"
+      },
+      {
+        "command": "agentvalet.signOut",
+        "title": "AgentValet: Sign out"
+      },
+      {
+        "command": "agentvalet.copyProxyUrl",
+        "title": "AgentValet: Copy proxy URL"
+      }
+    ],
+    "configuration": {
+      "title": "AgentValet",
+      "properties": {
+        "agentvalet.autoRegister": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically register this workspace as an agent on first open"
+        },
+        "agentvalet.apiUrl": {
+          "type": "string",
+          "default": "https://api.agentvalet.ai",
+          "description": "AgentValet API URL (advanced)"
+        },
+        "agentvalet.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show AgentValet status in the status bar"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
+    "watch": "npm run build -- --watch",
+    "package": "vsce package",
+    "publish:vsce": "vsce publish",
+    "publish:ovsx": "ovsx publish"
+  },
+  "dependencies": {
+    "conf": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^2.0.0",
+    "esbuild": "^0.20.0",
+    "ovsx": "^0.9.0",
+    "typescript": "^5.0.0"
+  }
+}

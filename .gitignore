@@ -1,0 +1,17 @@
+node_modules
+dist
+build
+*.local
+.env
+.env.*
+*.tgz
+*.mcpb
+
+# Artifacts written by the agents-md / factory-droid postinstall scripts when
+# `pnpm install` runs in this repo. Root-anchored so packages/agents-md/CLAUDE.md
+# (a committed product template) is NOT ignored.
+/AGENTS.md
+/CLAUDE.md
+/SKILL.md
+/.factory
+/.quickstart

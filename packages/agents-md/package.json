@@ -1,0 +1,17 @@
+{
+  "name": "@agentvalet/agents-md",
+  "version": "1.0.1",
+  "description": "AGENTS.md, CLAUDE.md, and SKILL.md files for AgentValet integration",
+  "files": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "SKILL.md",
+    "README.md",
+    "install.js"
+  ],
+  "scripts": {
+    "postinstall": "node install.js"
+  },
+  "keywords": ["agentvalet", "agents-md", "claude-md", "skill-md", "mcp"],
+  "license": "MIT"
+}

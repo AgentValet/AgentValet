@@ -1,0 +1,14 @@
+title = "AgentValet public mirror gitleaks config"
+
+[extend]
+useDefault = true
+
+# False positives: */pem.ts validates that a USER-supplied key has the correct
+# PEM header/footer. The "-----BEGIN ... PRIVATE KEY-----" strings are literals in
+# validation logic + an error message — there is no key body. Verified by reading
+# the file. Scoped to *pem.ts so a real key pasted anywhere else is still caught.
+[[allowlists]]
+description = "PEM header literals in key-validation code (no key body)"
+condition = "AND"
+paths = ['''pem\.ts$''']
+regexes = ['''-----BEGIN (RSA |PKCS8 )?PRIVATE KEY-----''']

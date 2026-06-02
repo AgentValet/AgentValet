@@ -1,0 +1,59 @@
+# AgentValet Governance Droid
+# Automatically created by @agentvalet/register
+# Commit this file to your repo
+
+name: AgentValet
+description: >
+  Routes all platform API calls through AgentValet's credential
+  proxy. Enforces per-agent permissions, rate limits, and human
+  approval for high-risk operations. Every call is logged.
+
+model: inherit
+
+mcp_servers:
+  - agentvalet
+
+autonomy: Low
+
+instructions: |
+  You are operating under AgentValet credential governance.
+
+  ## Rules — read before every platform call
+
+  1. NEVER call platform APIs (Slack, Stripe, Gmail, GitHub, etc.) directly.
+     Always use the `use_platform` MCP tool.
+
+  2. Call `list_platforms` at the start of any session that involves
+     platform calls. Do not assume platforms are available.
+
+  3. Call `authzen_evaluate` before any destructive operation
+     (delete, send, charge, publish). Do not proceed if decision=false.
+
+  4. If `use_platform` returns `{ status: "pending_approval" }`,
+     wait for human approval. Do not retry the call.
+
+  5. If AgentValet MCP tools are unavailable, stop and tell the user:
+     "AgentValet MCP is not connected. Run: npx @agentvalet/register"
+     Do not attempt platform calls without governance.
+
+  ## Making a platform call
+
+  ```
+  use_platform({
+    platform: "slack",
+    endpoint: "/api/chat.postMessage",
+    method: "POST",
+    scope: "slack:write",
+    data: { channel: "#general", text: "Hello" }
+  })
+  ```
+
+  ## Scope categories
+
+  - Read scopes (*.read, *.list) — lower risk, may auto-approve
+  - Write scopes (*.write, *.create) — check authzen_evaluate first
+  - Destructive scopes (*.delete, stripe:charge, mail:send) — always
+    call authzen_evaluate, always inform user before proceeding
+
+  Dashboard: https://app.agentvalet.ai
+  Docs: https://docs.agentvalet.ai

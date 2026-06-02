@@ -1,0 +1,50 @@
+{
+  "name": "@agentvalet/paperclip-adapter",
+  "version": "0.1.3",
+  "description": "Paperclip adapter for AgentValet — credential proxy and identity governance for Paperclip agents",
+  "type": "module",
+  "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./server": "./dist/server/index.js",
+    "./ui": "./dist/ui/index.js",
+    "./cli": "./dist/cli/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "pnpm run build"
+  },
+  "dependencies": {
+    "jose": "^5.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "picocolors": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/agentvalet/agentvalet.git",
+    "directory": "packages/paperclip-adapter"
+  },
+  "keywords": [
+    "paperclip",
+    "paperclipai",
+    "agentvalet",
+    "adapter",
+    "ai-agent",
+    "credential-proxy",
+    "governance"
+  ],
+  "license": "MIT"
+}
