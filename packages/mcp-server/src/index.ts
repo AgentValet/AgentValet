@@ -90,6 +90,42 @@ function pendingFirstCallResponse() {
   };
 }
 
+// State C — no credentials at all (empty env / Glama-style sandbox). The
+// server still boots and answers introspection; an authed tool call lands
+// here and gets an actionable message instead of a crash. Distinct from the
+// state-B "owner confirmation pending" response above, which means an identity
+// IS configured but its key hasn't arrived yet.
+function credentialsNotConfiguredResponse() {
+  return {
+    content: [{
+      type: "text" as const,
+      text:
+        "AgentValet credentials are not configured. Set AGENTVALET_AGENT_ID, " +
+        "AGENTVALET_OWNER_ID, and the agent private key (and optionally " +
+        "AGENTVALET_PROXY_URL). Run npx @agentvalet/register to create an agent. " +
+        "Docs: https://github.com/AgentValet/AgentValet#quickstart",
+    }],
+    isError: true as const,
+  };
+}
+
+// Credential gate for authed tools/call. Returns null when the call may
+// proceed (state A — a JWT can be signed), or a ready-to-return MCP tool
+// result for the two no-key states:
+//   • state B (identity present, key pending) → existing invite-bind pending
+//     response, preserving the MCPB first-run flow.
+//   • state C (no identity at all)            → credentials-not-configured.
+// The no-auth tools (agent_register / agent_status) intentionally never call
+// this — you must be able to register in order to OBTAIN credentials.
+async function requireCredentials() {
+  if (AGENT_PRIVATE_KEY_RAW !== null) return null;
+  if (AGENT_ID && OWNER_ID) {
+    await notifyBindSecret();
+    return pendingFirstCallResponse();
+  }
+  return credentialsNotConfiguredResponse();
+}
+
 // ---------------------------------------------------------------------------
 // Tool definitions
 // ---------------------------------------------------------------------------
@@ -561,10 +597,8 @@ function tryParseJson(text: string): unknown | undefined {
 // ---------------------------------------------------------------------------
 
 async function handleListPlatforms() {
-  if (AGENT_PRIVATE_KEY_RAW === null) {
-    await notifyBindSecret();
-    return pendingFirstCallResponse();
-  }
+  const gate = await requireCredentials();
+  if (gate) return gate;
 
   let response: Response;
   try {
@@ -635,10 +669,8 @@ async function handleUsePlatform(
   },
   progressToken?: string | number,
 ) {
-  if (AGENT_PRIVATE_KEY_RAW === null) {
-    await notifyBindSecret();
-    return pendingFirstCallResponse();
-  }
+  const gate = await requireCredentials();
+  if (gate) return gate;
 
   const requestBody = {
     platform: params.platform,
@@ -841,6 +873,9 @@ async function handleAgentStatus(token: string) {
 }
 
 async function handleAuthzenEvaluate(platformId: string, scope: string) {
+  const gate = await requireCredentials();
+  if (gate) return gate;
+
   const authzenBody = {
     subject: { type: "agent", id: AGENT_ID },
     action: { name: "tool_call" },
@@ -863,10 +898,8 @@ async function handleAuthzenEvaluate(platformId: string, scope: string) {
 }
 
 async function handleListMyPendingActions() {
-  if (AGENT_PRIVATE_KEY_RAW === null) {
-    await notifyBindSecret();
-    return pendingFirstCallResponse();
-  }
+  const gate = await requireCredentials();
+  if (gate) return gate;
 
   let response: Response;
   try {
@@ -881,10 +914,8 @@ async function handleListMyPendingActions() {
 }
 
 async function handleReportSelfDiagnostic(args: Record<string, unknown>) {
-  if (AGENT_PRIVATE_KEY_RAW === null) {
-    await notifyBindSecret();
-    return pendingFirstCallResponse();
-  }
+  const gate = await requireCredentials();
+  if (gate) return gate;
 
   // Whitelist body fields — never forward owner_id/agent_id (proxy derives those from JWT).
   const body: Record<string, unknown> = {

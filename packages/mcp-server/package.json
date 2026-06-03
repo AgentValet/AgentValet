@@ -1,6 +1,6 @@
 {
   "name": "@agentvalet/mcp-server",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "AgentValet MCP server — lets AI agents call approved platforms via the AgentValet proxy",
   "type": "module",
   "main": "dist/index.js",

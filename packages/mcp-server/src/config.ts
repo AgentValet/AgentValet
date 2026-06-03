@@ -101,17 +101,29 @@ export async function validateConfig(): Promise<Config> {
     }
   }
 
-  // Nothing usable — fall through to the original missing-env diagnostic.
+  // Nothing usable — boot credential-less instead of exiting.
+  //
+  // Introspection (initialize + tools/list) must work with NO credentials so
+  // a sandbox (e.g. Glama) can start the server and read the static tool
+  // catalogue. We therefore return a config with an EMPTY identity and a NULL
+  // key rather than process.exit(1). The credential requirement is deferred to
+  // tools/call: an authed tool invoked with no usable identity returns a clean
+  // "credentials not configured" tool result (see index.ts requireCredentials),
+  // never a crash. An empty agentId is the signal for "state C — not configured"
+  // (distinct from "state B — identity present, key pending" which keeps the
+  // existing invite-bind pending response).
   const missing: string[] = [];
   for (const key of ["AGENT_ID", "OWNER_ID", "PROXY_URL"] as const) {
     if (!process.env[key]) missing.push(key);
   }
   process.stderr.write(
-    `[mcp-server] Missing required environment variables: ${missing.join(", ")}\n` +
-      `Either set them, run the invite-bind flow with INVITE_BIND_SECRET, ` +
-      `or restore ~/.agentvalet/agent.{key,json} from a previous bind.\n`,
+    `[mcp-server] No credentials configured (${missing.join(", ")} unset, no disk ` +
+      `identity, no INVITE_BIND_SECRET). Booting in introspection-only mode: ` +
+      `tools/list works; tools/call returns a credentials-required message. ` +
+      `Set the env vars, run the invite-bind flow, or restore ` +
+      `~/.agentvalet/agent.{key,json} to enable platform calls.\n`,
   );
-  process.exit(1);
+  return buildConfig({ agentId: "", ownerId: "", proxyUrl: DEFAULT_PROXY_URL });
 }
 
 async function buildConfig(args: {
@@ -134,10 +146,14 @@ async function buildConfig(args: {
     try {
       privateKey = await importPKCS8(privateKeyPem, "RS256");
     } catch (err) {
+      // Don't crash the process on a malformed key — that would also take down
+      // introspection. Drop the unusable key to null and log; tools/call will
+      // return the credentials-required message instead of a hard exit.
       process.stderr.write(
-        `[mcp-server] Invalid private key: ${err instanceof Error ? err.message : err}\n`,
+        `[mcp-server] Invalid private key (ignored): ${err instanceof Error ? err.message : err}\n`,
       );
-      process.exit(1);
+      privateKeyPem = null;
+      privateKey = null;
     }
   }
 
