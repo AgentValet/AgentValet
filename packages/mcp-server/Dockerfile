@@ -18,31 +18,12 @@
 # OWNER_ID, and one of AGENT_PRIVATE_KEY_B64 / AGENT_PRIVATE_KEY_PATH /
 # AGENT_PRIVATE_KEY (and optionally PROXY_URL). Without them the server stays in
 # introspection-only mode by design.
-#
-# Why build from source instead of `npm i -g @agentvalet/mcp-server@<ver>`:
-# the credential-less introspection behaviour is newer than the currently
-# published npm release, so pinning to the published package would reintroduce
-# the old "exit on missing credentials" startup and break introspection. Once a
-# release carrying this change is published, swapping to a pinned global install
-# yields an equivalent, smaller image.
 
-# ---- build stage: compile TypeScript -> dist/ ----
-FROM node:20-alpine AS build
-WORKDIR /app
-# Dependency manifests first for layer caching. devDependencies (typescript,
-# tsx) are needed here to run `npm run build` (tsc).
-COPY package.json tsconfig.json ./
-RUN npm install --no-audit --no-fund
-COPY src ./src
-RUN npm run build
-
-# ---- runtime stage: prod deps + compiled output only ----
 FROM node:20-alpine
-WORKDIR /app
-ENV NODE_ENV=production
-COPY package.json ./
-RUN npm install --omit=dev --no-audit --no-fund
-COPY --from=build /app/dist ./dist
 
-# bin name is taken from package.json "bin": agentvalet-mcp-server -> dist/index.js
-ENTRYPOINT ["node", "dist/index.js"]
+# Pin the published package (which carries the credential-less introspection
+# behaviour as of 1.1.0) for a small, reproducible image. The bin name comes
+# from package.json "bin": agentvalet-mcp-server.
+RUN npm install -g @agentvalet/mcp-server@1.1.0
+
+ENTRYPOINT ["agentvalet-mcp-server"]
