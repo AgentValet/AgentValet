@@ -22,8 +22,8 @@
 FROM node:20-alpine
 
 # Pin the published package (which carries the credential-less introspection
-# behaviour as of 1.1.0) for a small, reproducible image. The bin name comes
-# from package.json "bin": agentvalet-mcp-server.
-RUN npm install -g @agentvalet/mcp-server@1.1.0
+# behaviour as of 1.1.0; 1.1.1 adds the bin shebang) for a small, reproducible
+# image. The bin name comes from package.json "bin": agentvalet-mcp-server.
+RUN npm install -g @agentvalet/mcp-server@1.1.1
 
 ENTRYPOINT ["agentvalet-mcp-server"]

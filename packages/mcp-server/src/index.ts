@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // ── BOOT DIAGNOSTICS — must be FIRST executable code ─────────────────────
 // Claude Desktop captures whatever the MCP server writes to stderr before
 // the stdio transport handshake. If startup crashes silently (top-level

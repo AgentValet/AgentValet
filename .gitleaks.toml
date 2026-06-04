@@ -12,3 +12,12 @@ description = "PEM header literals in key-validation code (no key body)"
 condition = "AND"
 paths = ['''pem\.ts$''']
 regexes = ['''-----BEGIN (RSA |PKCS8 )?PRIVATE KEY-----''']
+
+# Dummy PEM fixtures in unit tests — the key body is a literal placeholder
+# (e.g. "test"), not key material. Verified by reading the file. Scoped to
+# *.test.ts so a real key pasted into product code is still caught.
+[[allowlists]]
+description = "Placeholder PEM key fixtures in unit tests (no real key body)"
+condition = "AND"
+paths = ['''\.test\.ts$''']
+regexes = ['''-----BEGIN (RSA |PKCS8 )?PRIVATE KEY-----''']
