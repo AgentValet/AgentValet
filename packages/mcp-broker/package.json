@@ -1,6 +1,6 @@
 {
   "name": "@agentvalet/mcp-broker",
-  "version": "1.0.0",
+  "version": "0.1.1",
   "description": "Embeddable credential broker and policy enforcement for third-party MCP servers. Wrap once; every tool is policy-checked, credential-injected, and audited.",
   "type": "module",
   "main": "dist/index.js",
@@ -34,7 +34,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/agentvalet/agentvalet.git",
+    "url": "git+https://github.com/AgentValet/AgentValet.git",
     "directory": "packages/mcp-broker"
   },
   "keywords": [
