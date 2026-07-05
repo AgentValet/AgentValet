@@ -1,0 +1,16 @@
+# Policy for the fixed server. Deny by default. create_issue is allowed and
+# uses a read/write issues credential; delete_repo needs a human approval and an
+# admin credential; anything not listed here is denied.
+version: 1
+
+defaults:
+  effect: deny
+
+rules:
+  - tool: create_issue
+    effect: allow
+    credential: github_issues_rw
+
+  - tool: delete_repo
+    effect: require_approval
+    credential: github_admin

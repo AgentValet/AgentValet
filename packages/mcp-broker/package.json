@@ -1,0 +1,50 @@
+{
+  "name": "@agentvalet/mcp-broker",
+  "version": "0.1.0",
+  "description": "Embeddable credential broker and policy enforcement for third-party MCP servers. Wrap once; every tool is policy-checked, credential-injected, and audited.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prepublishOnly": "pnpm run build"
+  },
+  "peerDependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.5.0",
+    "zod": "^3.25.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agentvalet/agentvalet.git",
+    "directory": "packages/mcp-broker"
+  },
+  "keywords": [
+    "mcp",
+    "modelcontextprotocol",
+    "credential-broker",
+    "policy",
+    "authorization",
+    "authzen",
+    "agentvalet"
+  ],
+  "license": "MIT"
+}

@@ -21,3 +21,14 @@ description = "Placeholder PEM key fixtures in unit tests (no real key body)"
 condition = "AND"
 paths = ['''\.test\.ts$''']
 regexes = ['''-----BEGIN (RSA |PKCS8 )?PRIVATE KEY-----''']
+
+# Fake credential fixtures in @agentvalet/mcp-broker tests and the
+# insecure-then-fixed demo. Placeholder tokens (e.g. "ghp_rw", a deliberately
+# naive example personal access token, "mint-…", "tok-…"), never real key
+# material. Verified by reading the files. Scoped by path AND token shape so a
+# real secret pasted anywhere else is still caught.
+[[allowlists]]
+description = "Placeholder credential fixtures in mcp-broker tests and demo"
+condition = "AND"
+paths = ['''packages/mcp-broker/(tests|examples)/.*''']
+regexes = ['''(ghp_[A-Za-z0-9]+|mint-[A-Za-z0-9-]+|tok-[A-Za-z0-9-]+)''']

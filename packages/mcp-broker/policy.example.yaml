@@ -1,0 +1,24 @@
+# Local policy for @agentvalet/mcp-broker.
+#
+# Deliberately small: one file, one rule per tool, deny by default. There are no
+# environments, no inheritance, no templating, and no record of who changed a
+# rule. The moment you need any of those, that is the hosted control plane, and
+# the YAML never grows to cover it. Point the broker at this file with
+# policy: "file:./policy.yaml".
+version: 1
+
+defaults:
+  effect: deny
+
+rules:
+  - tool: list_issues
+    effect: allow
+    credential: github_readonly
+
+  - tool: create_issue
+    effect: allow
+    credential: github_issues_rw
+
+  - tool: delete_repo
+    effect: require_approval
+    credential: github_admin

@@ -134,7 +134,9 @@ Building in public, so the rough edges are listed here rather than discovered.
 
 ## What is open and what is managed
 
-Open source in this repo, MIT licensed: the MCP server, the `@agentvalet/register` CLI, the Claude Desktop bundle, and the runtime adapters. These run anywhere and talk to the proxy over a documented HTTP API.
+Open source in this repo, MIT licensed: the MCP server, the `@agentvalet/register` CLI, the Claude Desktop bundle, the runtime adapters, and `@agentvalet/mcp-broker`.
+
+The two MCP packages are mirror images of each other: `@agentvalet/mcp-server` lets an agent call platforms through the AgentValet proxy, whereas `@agentvalet/mcp-broker` lets you embed AgentValet policy and credential enforcement inside your own MCP server, with a genuinely useful local mode and zero required account.
 
 Managed service today: the proxy that holds the credential vault, runs the policy engine, and writes the audit log. A self-host reference for the proxy is on the roadmap. See `CONTRIBUTING.md` for local development of the open packages.
 

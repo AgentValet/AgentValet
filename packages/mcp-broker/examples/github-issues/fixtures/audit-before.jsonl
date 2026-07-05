@@ -1,0 +1,2 @@
+{"ts":"2026-07-05T09:00:00.000Z","tool":"create_issue","token":"ghp_EXAMPLEonlyNotARealToken0123456789ab","args":{"title":"Prod is down","body":"Customer X reports 500s since 08:50"}}
+{"ts":"2026-07-05T09:01:00.000Z","tool":"delete_repo","token":"ghp_EXAMPLEonlyNotARealToken0123456789ab","args":{"name":"acme/really-important-repo"}}
