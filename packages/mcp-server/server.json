@@ -1,0 +1,70 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.agentvalet/mcp-server",
+  "title": "AgentValet",
+  "description": "Governed credential broker — lets AI agents call approved SaaS platforms through a policy-checked, human-approval, fully-audited proxy. The agent never holds a raw token.",
+  "websiteUrl": "https://agentvalet.ai",
+  "repository": {
+    "url": "https://github.com/AgentValet/AgentValet",
+    "source": "github",
+    "subfolder": "packages/mcp-server"
+  },
+  "version": "1.4.1",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@agentvalet/mcp-server",
+      "version": "1.4.1",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "AGENT_ID",
+          "description": "Agent ID from AgentValet registration (agt_...). Required to make platform calls; tool discovery works without it.",
+          "isRequired": true,
+          "isSecret": false
+        },
+        {
+          "name": "OWNER_ID",
+          "description": "Owner ID (UUID) from AgentValet registration.",
+          "isRequired": true,
+          "isSecret": false
+        },
+        {
+          "name": "PROXY_URL",
+          "description": "AgentValet proxy base URL. Leave as default unless self-hosting.",
+          "isRequired": false,
+          "isSecret": false,
+          "default": "https://api.agentvalet.ai"
+        },
+        {
+          "name": "AGENT_PRIVATE_KEY_PATH",
+          "description": "Path to the agent's RS256 PKCS#8 PEM private key file. Provide exactly one of AGENT_PRIVATE_KEY_PATH, AGENT_PRIVATE_KEY, or AGENT_PRIVATE_KEY_B64.",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "AGENT_PRIVATE_KEY",
+          "description": "RS256 PKCS#8 private key as raw or \\n-escaped PEM (alternative to AGENT_PRIVATE_KEY_PATH).",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "AGENT_PRIVATE_KEY_B64",
+          "description": "Base64-encoded RS256 PKCS#8 PEM (alternative to AGENT_PRIVATE_KEY_PATH).",
+          "isRequired": false,
+          "isSecret": true
+        }
+      ]
+    }
+  ],
+  "_meta": {
+    "io.modelcontextprotocol.registry/publisher-provided": {
+      "tags": ["security", "authorization", "credentials", "governance", "audit", "proxy"],
+      "toolCount": 8
+    }
+  }
+}

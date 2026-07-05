@@ -1,0 +1,57 @@
+# Smithery configuration for @agentvalet/mcp-server
+# Docs: https://smithery.ai/docs/build/project-config
+#
+# This is a stdio MCP server published to npm, so Smithery runs the published
+# package directly with `npx` — no repo build step required.
+#
+# The server boots in introspection-only mode when no credentials are supplied
+# (see src/config.ts), so `tools/list` succeeds during Smithery's tool scan
+# even before a user fills in their agent identity. The auth fields below are
+# therefore optional for discovery but required to actually call platforms.
+
+startCommand:
+  type: stdio
+
+  configSchema:
+    type: object
+    required: []
+    properties:
+      agentId:
+        type: string
+        title: Agent ID
+        description: >-
+          Your AgentValet agent id (agt_...). Required to make platform calls.
+          Tool discovery works without it.
+      ownerId:
+        type: string
+        title: Owner ID
+        description: Your AgentValet owner id (UUID).
+      agentPrivateKey:
+        type: string
+        title: Agent Private Key (PEM)
+        description: >-
+          RS256 private key in PKCS#8 PEM. Paste the full
+          "-----BEGIN PRIVATE KEY-----" block, or a \n-escaped single line.
+      proxyUrl:
+        type: string
+        title: Proxy URL
+        default: https://api.agentvalet.ai
+        description: AgentValet proxy base URL. Leave as default unless self-hosting.
+
+  commandFunction: |
+    (config) => ({
+      command: 'npx',
+      args: ['-y', '@agentvalet/mcp-server'],
+      env: {
+        ...(config.agentId ? { AGENT_ID: config.agentId } : {}),
+        ...(config.ownerId ? { OWNER_ID: config.ownerId } : {}),
+        ...(config.agentPrivateKey ? { AGENT_PRIVATE_KEY: config.agentPrivateKey } : {}),
+        PROXY_URL: config.proxyUrl || 'https://api.agentvalet.ai',
+      },
+    })
+
+  exampleConfig:
+    agentId: agt_example000000000000
+    ownerId: 00000000-0000-0000-0000-000000000000
+    agentPrivateKey: "-----BEGIN PRIVATE KEY-----\n<your PKCS#8 key here>\n-----END PRIVATE KEY-----"
+    proxyUrl: https://api.agentvalet.ai

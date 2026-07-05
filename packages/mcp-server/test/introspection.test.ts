@@ -45,6 +45,7 @@ const EXPECTED_TOOLS = [
   "authzen_evaluate",
   "report_self_diagnostic",
   "list_my_pending_actions",
+  "request_platform_access",
 ];
 
 let client: Client;

@@ -49,10 +49,13 @@ Add to your `.mcp.json` or equivalent:
 | Tool | Auth | Description |
 |------|------|-------------|
 | `list_platforms` | JWT | List platforms and scopes this agent has access to |
-| `use_platform` | JWT | Call an external platform API through the proxy |
+| `use_platform` | JWT | Call an external platform API through the proxy (blocks for owner approval when required) |
+| `authzen_evaluate` | JWT | Pre-check whether this agent has access to a platform scope, without making the call |
+| `list_my_pending_actions` | JWT | List this agent's pending approvals and actions completed in the last 24h |
+| `request_platform_access` | JWT | Ask an org admin to grant access to a platform the agent is blocked from |
+| `report_self_diagnostic` | JWT | Lodge a self-report (error/warning/info) with the owner |
 | `agent_register` | None | Self-register a new agent with an owner |
 | `agent_status` | None | Poll registration approval status |
-| `authzen_evaluate` | None | Check if this agent has access to a platform scope |
 
 ## Transports
 
