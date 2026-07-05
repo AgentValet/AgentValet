@@ -1,6 +1,6 @@
 {
   "name": "@agentvalet/mcp-broker",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Embeddable credential broker and policy enforcement for third-party MCP servers. Wrap once; every tool is policy-checked, credential-injected, and audited.",
   "type": "module",
   "main": "dist/index.js",
