@@ -9,6 +9,7 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    environment: npm-publish   # required-reviewer gate; NPM_TOKEN is an environment secret
     permissions:
       contents: read
       id-token: write   # required for npm provenance attestation
