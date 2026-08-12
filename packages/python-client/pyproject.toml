@@ -1,0 +1,74 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agentvalet"
+version = "0.1.0"
+description = "Call approved SaaS platforms from any Python agent. Your agent never holds the downstream credential."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "AgentValet" }]
+keywords = ["ai", "agents", "agentvalet", "credentials", "authorization", "sdk", "mcp"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Security",
+  "Typing :: Typed",
+]
+dependencies = [
+  "httpx>=0.24",
+  # [crypto] pulls `cryptography`, which also gives us RSA keygen for
+  # `agentvalet register` at no extra dependency cost.
+  "pyjwt[crypto]>=2.6",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.4",
+  "pytest-asyncio>=0.21",
+  "respx>=0.20",
+  "mypy>=1.8",
+  "ruff>=0.4",
+]
+
+[project.scripts]
+agentvalet = "agentvalet.register:main"
+
+[project.urls]
+Homepage = "https://agentvalet.ai"
+Documentation = "https://docs.agentvalet.ai"
+Source = "https://github.com/AgentValet/AgentValet"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/agentvalet"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+# Pin the rule set explicitly. Relying on ruff's defaults means the lint
+# surface silently changes on a ruff upgrade.
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests import their own conftest by name and shadow builtins freely.
+"tests/*" = ["E402", "E501"]  # long inline fixtures read better unwrapped
+
+[tool.mypy]
+# No python_version pin: recent mypy refuses 3.9 as a target, and the real
+# floor is enforced by requires-python. Strict still applies.
+strict = true

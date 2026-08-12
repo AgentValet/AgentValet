@@ -1,0 +1,48 @@
+{
+  "name": "@agentvalet/client",
+  "version": "0.1.1",
+  "description": "AgentValet client SDK \u2014 call approved SaaS platforms from any Node agent. Signs the agent JWT, brokers through the AgentValet proxy, and waits out owner approvals.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prepublishOnly": "node ../../scripts/no-secrets.mjs && pnpm run build && node ../../scripts/no-workspace-protocol.mjs"
+  },
+  "dependencies": {
+    "jose": "^5.10.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.5.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AgentValet/AgentValet.git",
+    "directory": "packages/client"
+  },
+  "keywords": [
+    "ai",
+    "agents",
+    "agentvalet",
+    "credentials",
+    "authorization",
+    "sdk"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/AgentValet/AgentValet#readme"
+}
