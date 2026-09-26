@@ -34,20 +34,63 @@
 // why). evaluatePolicy() discards it; evaluatePolicyWithTrace() returns it.
 // The trace references rule targets, tags, and ids only — never credentials
 // or payloads — so it is safe to persist alongside audit entries.
+//
+// Predicates (CodePrompts/Affindi-Competitor/06-policy-as-code-escape-hatch-
+// design.md). A policy rule or approval rule may carry an optional predicate
+// ({lang: "cel", text}). It is a MATCH GUARD: the rule matches iff its target
+// matches AND the predicate evaluates true. It changes nothing about the
+// precedence above, so a predicate can narrow an allow or widen a deny or an
+// approval, never grant. The language engine is INJECTED through
+// EvaluationInput.predicate (this file must stay import-free: it is synced
+// byte-for-byte into the Deno edge function and the open-core broker), and
+// every non-true outcome fails closed:
+//   allow rule:    false / error / unavailable => the rule does not match
+//   deny rule:     false => falls through; error / unavailable => matches (deny)
+//   approval rule: false => falls through; error / unavailable => matches (ask)
+// In discovery mode (mode omitted or "discovery": list_platforms, preview)
+// the engine is not consulted at all: a predicated allow counts as allowed
+// but conditional, a predicated deny as not matching, a predicated approval
+// as asking, and the trace carries `conditional: true` so discovery can
+// advertise the scope as conditional and fold that into its version hash.
 
 export type TargetType = "platform" | "tag" | "scope";
 export type Effect = "allow" | "deny";
 export type Role = "admin" | "member";
 
+export type PredicateLang = "cel";
+
+export interface RulePredicate {
+  lang: PredicateLang;
+  text: string;
+}
+
 export interface PolicyRule {
+  // Row id when loaded from the database; absent on drafts. Only echoed in
+  // trace events so an auditor can name the rule that decided a call.
+  id?: string;
   effect: Effect;
   targetType: TargetType;
   targetValue: string;
+  predicate?: RulePredicate | null;
 }
 
 export interface ApprovalRule {
+  id?: string;
   targetType: TargetType;
   targetValue: string;
+  predicate?: RulePredicate | null;
+}
+
+export type PredicateOutcome = "true" | "false" | "error";
+
+/**
+ * The injected language engine. Pure: same predicate + same request => same
+ * outcome. It must never throw; if it does, the kernel records `error`.
+ * The request context the predicate reads is closed over by the caller
+ * (the proxy builds it once per call), so the kernel never sees it.
+ */
+export interface PredicateEvaluator {
+  evaluate(predicate: RulePredicate): PredicateOutcome;
 }
 
 export interface PolicySnapshot {
@@ -71,6 +114,12 @@ export interface EvaluationInput {
   callerRole: Role;
   requestedScopeTags: string[];
   requested: { platformId: string; scopeId: string };
+  // "call": a real request is being decided; predicates are evaluated through
+  // `predicate`, and a missing engine (org not entitled, engine not wired)
+  // fails closed. "discovery" (the default): no request context exists, so
+  // predicates are not evaluated and the discovery defaults above apply.
+  mode?: "call" | "discovery";
+  predicate?: PredicateEvaluator;
 }
 
 export type EvaluationResult =
@@ -85,7 +134,7 @@ export type EvaluationResult =
 // Decision trace
 // ---------------------------------------------------------------------------
 
-export const TRACE_VERSION = 1;
+export const TRACE_VERSION = 2;
 
 export interface TraceTargetRef {
   targetType: TargetType;
@@ -100,7 +149,19 @@ export type DecisionTraceEvent =
   | { kind: "policy_allow_matched"; policyId: string; rule: TraceTargetRef }
   | { kind: "policy_no_allow_matched"; policyId: string; allowRulesConsidered: number }
   | { kind: "policy_deny_matched"; policyId: string; rule: TraceTargetRef }
-  | { kind: "policy_approval_matched"; policyId: string; rule: TraceTargetRef };
+  | { kind: "policy_approval_matched"; policyId: string; rule: TraceTargetRef }
+  // A predicate ran (call mode). `unavailable` = no engine injected, which
+  // is how an un-entitled org's predicated rules show up: fail-closed, visibly.
+  | {
+      kind: "rule_predicate_evaluated";
+      ruleId: string | null;
+      scope: "policy_rule" | "approval_rule";
+      lang: PredicateLang;
+      outcome: PredicateOutcome | "unavailable";
+    }
+  // Discovery mode: the predicate was not evaluated and the discovery
+  // default was applied instead.
+  | { kind: "rule_predicate_deferred"; ruleId: string | null; scope: "policy_rule" | "approval_rule"; lang: PredicateLang };
 
 export interface DecisionTrace {
   version: typeof TRACE_VERSION;
@@ -111,6 +172,9 @@ export interface DecisionTrace {
     requestedScopeTags: string[];
   };
   events: DecisionTraceEvent[];
+  // Present (true) only in discovery mode when at least one predicated rule
+  // shaped the verdict: the answer is "allowed, but conditional at call time".
+  conditional?: true;
 }
 
 export interface TracedEvaluation {
@@ -140,8 +204,10 @@ function targetMatches(
 
 export function evaluatePolicyWithTrace(input: EvaluationInput): TracedEvaluation {
   const { policy, guardrails, callerRole, requestedScopeTags, requested } = input;
+  const mode = input.mode ?? "discovery";
 
   const events: DecisionTraceEvent[] = [];
+  let conditional = false;
   const done = (result: EvaluationResult): TracedEvaluation => ({
     result,
     trace: {
@@ -153,8 +219,43 @@ export function evaluatePolicyWithTrace(input: EvaluationInput): TracedEvaluatio
         requestedScopeTags: [...requestedScopeTags],
       },
       events,
+      ...(conditional ? { conditional: true as const } : {}),
     },
   });
+
+  // Does this rule's predicate let it match? `onUnknown` is the fail-closed
+  // answer for error/unavailable: false for an allow (no grant), true for a
+  // deny or an approval (deny / ask). `onDiscovery` is the discovery default.
+  function predicatePasses(
+    rule: { id?: string; predicate?: RulePredicate | null },
+    scope: "policy_rule" | "approval_rule",
+    onUnknown: boolean,
+    onDiscovery: boolean,
+  ): boolean {
+    const pred = rule.predicate;
+    if (!pred) return true;
+    const ruleId = rule.id ?? null;
+    if (mode !== "call") {
+      events.push({ kind: "rule_predicate_deferred", ruleId, scope, lang: pred.lang });
+      conditional = true;
+      return onDiscovery;
+    }
+    if (!input.predicate) {
+      events.push({ kind: "rule_predicate_evaluated", ruleId, scope, lang: pred.lang, outcome: "unavailable" });
+      return onUnknown;
+    }
+    let outcome: PredicateOutcome;
+    try {
+      const o = input.predicate.evaluate(pred);
+      outcome = o === "true" || o === "false" ? o : "error";
+    } catch {
+      outcome = "error";
+    }
+    events.push({ kind: "rule_predicate_evaluated", ruleId, scope, lang: pred.lang, outcome });
+    if (outcome === "true") return true;
+    if (outcome === "false") return false;
+    return onUnknown;
+  }
 
   // 1. Guardrails — deny pass first.
   for (const g of guardrails) {
@@ -202,7 +303,8 @@ export function evaluatePolicyWithTrace(input: EvaluationInput): TracedEvaluatio
   for (const r of policy.rules) {
     if (r.effect !== "allow") continue;
     allowRulesConsidered++;
-    if (targetMatches(r.targetType, r.targetValue, requested, requestedScopeTags)) {
+    // Predicated allow: unknown => no match (no grant); discovery => match, conditional.
+    if (targetMatches(r.targetType, r.targetValue, requested, requestedScopeTags) && predicatePasses(r, "policy_rule", false, true)) {
       hasAllow = true;
       events.push({
         kind: "policy_allow_matched",
@@ -218,7 +320,8 @@ export function evaluatePolicyWithTrace(input: EvaluationInput): TracedEvaluatio
   }
   for (const r of policy.rules) {
     if (r.effect !== "deny") continue;
-    if (targetMatches(r.targetType, r.targetValue, requested, requestedScopeTags)) {
+    // Predicated deny: unknown => match (deny); discovery => no match (scope stays advertised).
+    if (targetMatches(r.targetType, r.targetValue, requested, requestedScopeTags) && predicatePasses(r, "policy_rule", true, false)) {
       events.push({
         kind: "policy_deny_matched",
         policyId: policy.id,
@@ -231,7 +334,8 @@ export function evaluatePolicyWithTrace(input: EvaluationInput): TracedEvaluatio
   // 5. Approval rules (policy-side).
   let policyApproval = false;
   for (const ar of policy.approvalRules) {
-    if (targetMatches(ar.targetType, ar.targetValue, requested, requestedScopeTags)) {
+    // Predicated approval: unknown => match (ask); discovery => match (advertise the stricter case).
+    if (targetMatches(ar.targetType, ar.targetValue, requested, requestedScopeTags) && predicatePasses(ar, "approval_rule", true, true)) {
       policyApproval = true;
       events.push({
         kind: "policy_approval_matched",

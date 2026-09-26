@@ -1,6 +1,7 @@
 // The enforcement pipeline. One pass per tool call:
 //
-//   resolve identity -> evaluate policy -> (approval if required) ->
+//   resolve identity -> evaluate policy -> check recipient domains ->
+//   (approval if required) ->
 //   resolve credential -> invoke handler -> redact -> audit
 //
 // Every terminating outcome (allow, deny, approval timeout/denial, handler
@@ -9,6 +10,7 @@
 // resolved credential to an injected invoker and returns a small tagged result
 // the caller turns into an MCP response.
 import { argsFingerprint } from "./fingerprint.js";
+import { checkRecipientDomains, type RecipientDomainsObligation } from "./recipients.js";
 import type {
   AccessRequest,
   AuditEvent,
@@ -48,6 +50,10 @@ function credentialObligation(decision: Decision): Extract<Obligation, { type: "
   return (decision.obligations ?? []).find((o) => o.type === "credential") as
     | Extract<Obligation, { type: "credential" }>
     | undefined;
+}
+
+function recipientObligations(decision: Decision): RecipientDomainsObligation[] {
+  return (decision.obligations ?? []).filter((o) => o.type === "recipient_domains") as RecipientDomainsObligation[];
 }
 
 export async function runPipeline(
@@ -124,6 +130,19 @@ export async function runPipeline(
   if (decision.effect === "deny") {
     await emit("denied", decision);
     return { status: "blocked", effect: "deny", reason: "denied by policy" };
+  }
+
+  // 2b. Recipient domain allow-lists. Checked before approval so a human is
+  // never asked to approve a send the policy already forbids.
+  for (const ob of recipientObligations(decision)) {
+    const check = checkRecipientDomains(params.args, ob);
+    if (!check.ok) {
+      warnings.push(
+        check.domains.length ? `recipient_domain_not_allowed: ${check.domains.join(", ")}` : `recipient_check_failed: ${check.reason}`,
+      );
+      await emit("denied", { ...decision, effect: "deny" });
+      return { status: "blocked", effect: "deny", reason: check.reason };
+    }
   }
 
   // 3. Approval, if required.

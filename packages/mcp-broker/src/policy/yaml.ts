@@ -16,9 +16,14 @@
 //     - tool: <name>
 //       effect: allow | deny | require_approval
 //       credential: <name>            # optional
+//       recipient_args: <arg>, <arg>    # optional; needs allowed_domains and/or allowed_addresses
+//       allowed_domains: <d>, <d>       # optional, needs recipient_args
+//       allowed_addresses: <a>, <a>     # optional, needs recipient_args; exact addresses
 //
 // Whitespace is spaces only. Tabs, anchors (&), aliases (*), merge keys (<<),
 // interpolation (${), and flow collections ([ ]/{ }) are hard errors.
+
+import { normaliseAddress, normaliseDomain } from "../recipients.js";
 
 export type RuleEffect = "allow" | "deny" | "require_approval";
 
@@ -26,6 +31,8 @@ export interface PolicyRuleDoc {
   tool: string;
   effect: RuleEffect;
   credential?: string;
+  // Recipient allow-list: args plus at least one of domains / addresses (a union).
+  recipients?: { args: string[]; allowedDomains: string[]; allowedAddresses?: string[] };
 }
 
 export interface PolicyDoc {
@@ -98,8 +105,24 @@ interface DraftRule {
   tool?: string;
   effect: RuleEffect;
   credential?: string;
+  recipientArgs?: string[];
+  allowedDomains?: string[];
+  allowedAddresses?: string[];
   indent: number;
+  line: number;
 }
+
+// "a, b, c" -> ["a", "b", "c"]. Empty items and duplicates are errors, not
+// silently dropped, so a typo cannot quietly shrink or widen a list.
+function commaList(value: string, key: string, line: number): string[] {
+  const items = value.split(",").map((s) => s.trim());
+  if (items.some((s) => s === "")) throw new PolicyParseError(`${key} has an empty item`, line);
+  if (new Set(items).size !== items.length) throw new PolicyParseError(`${key} has a duplicate item`, line);
+  return items;
+}
+
+const ARG_PATH = /^[A-Za-z_$][\w$-]*(\.[A-Za-z_$][\w$-]*)*$/;
+const DOMAIN = /^[a-z0-9-]+(\.[a-z0-9-]+)+$/i;
 
 function applyRuleField(rule: DraftRule, body: string, line: number): void {
   const { key, value } = splitKeyValue(body, line);
@@ -113,6 +136,37 @@ function applyRuleField(rule: DraftRule, body: string, line: number): void {
     rule.effect = v as RuleEffect;
   } else if (key === "credential") {
     rule.credential = v;
+  } else if (key === "recipient_args") {
+    const args = commaList(v, key, line);
+    for (const a of args) {
+      if (!ARG_PATH.test(a)) throw new PolicyParseError(`recipient_args: "${a}" is not an argument name or dotted path`, line);
+    }
+    rule.recipientArgs = args;
+  } else if (key === "allowed_domains") {
+    const domains = commaList(v, key, line);
+    for (const d of domains) {
+      // Wildcards are rejected rather than half-supported: subdomains must be
+      // listed one by one, the same as the hosted plane. Unicode domains are
+      // accepted and stored in their IDNA (punycode) form.
+      if (d.includes("@") || !DOMAIN.test(normaliseDomain(d))) {
+        throw new PolicyParseError(`allowed_domains: "${d}" is not a domain (no wildcards, no '@')`, line);
+      }
+    }
+    rule.allowedDomains = domains.map(normaliseDomain);
+  } else if (key === "allowed_addresses") {
+    const addresses = commaList(v, key, line);
+    for (const a of addresses) {
+      // One exact mailbox: a non-empty local part with no spaces or angle
+      // brackets, and a real domain after the last '@'. No wildcards.
+      const at = a.lastIndexOf("@");
+      const local = at > 0 ? a.slice(0, at) : "";
+      if (!local || /[\s<>*]/.test(local) || !DOMAIN.test(normaliseDomain(a.slice(at + 1)))) {
+        throw new PolicyParseError(`allowed_addresses: "${a}" is not an email address (no wildcards)`, line);
+      }
+    }
+    const normalised = addresses.map(normaliseAddress);
+    if (new Set(normalised).size !== normalised.length) throw new PolicyParseError(`${key} has a duplicate item`, line);
+    rule.allowedAddresses = normalised;
   } else {
     throw new PolicyParseError(`unknown rule key "${key}"`, line);
   }
@@ -172,7 +226,7 @@ export function parsePolicy(source: string): PolicyDoc {
 
     if (section === "rules") {
       if (body === "-" || body.startsWith("- ")) {
-        current = { effect: "deny", indent };
+        current = { effect: "deny", indent, line: lineNo };
         drafts.push(current);
         const after = body.slice(1).trim();
         if (after !== "") applyRuleField(current, after, lineNo);
@@ -202,9 +256,20 @@ export function parsePolicy(source: string): PolicyDoc {
     if (d.tool === undefined || d.tool === "") throw new PolicyParseError('rule is missing "tool:"', 0);
     if (seen.has(d.tool)) throw new PolicyParseError(`duplicate rule for tool "${d.tool}"`, 0);
     seen.add(d.tool);
-    rules.push(d.credential !== undefined
-      ? { tool: d.tool, effect: d.effect, credential: d.credential }
-      : { tool: d.tool, effect: d.effect });
+    const hasAllowList = d.allowedDomains !== undefined || d.allowedAddresses !== undefined;
+    if ((d.recipientArgs !== undefined) !== hasAllowList) {
+      throw new PolicyParseError(`rule for "${d.tool}" needs recipient_args together with allowed_domains and/or allowed_addresses`, d.line);
+    }
+    if (d.recipientArgs && d.effect === "deny") {
+      throw new PolicyParseError(`rule for "${d.tool}" is deny; recipient_args, allowed_domains and allowed_addresses only apply to allow or require_approval`, d.line);
+    }
+    const rule: PolicyRuleDoc = { tool: d.tool, effect: d.effect };
+    if (d.credential !== undefined) rule.credential = d.credential;
+    if (d.recipientArgs && hasAllowList) {
+      rule.recipients = { args: d.recipientArgs, allowedDomains: d.allowedDomains ?? [] };
+      if (d.allowedAddresses) rule.recipients.allowedAddresses = d.allowedAddresses;
+    }
+    rules.push(rule);
   }
 
   return {

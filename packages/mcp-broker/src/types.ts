@@ -34,13 +34,16 @@ export interface AccessRequest {
 export type Effect = "allow" | "deny" | "require_approval";
 
 // Obligations are the documented extensibility point on a Decision. The broker
-// ships two concrete kinds and ignores any it does not recognise, so a richer
+// ships three concrete kinds and ignores any it does not recognise, so a richer
 // hosted plane can add obligations without breaking a local handler.
 //   - credential: which vault reference to resolve for this call.
 //   - narrow_scope: the scope the resolved credential must be narrowed to.
+//   - recipient_domains: every recipient in the call (read from the named args)
+//     must be at an allowed domain or be an allowed address, or the call is denied.
 export type Obligation =
   | { type: "credential"; ref: string; scope?: string[] }
   | { type: "narrow_scope"; scope: string[] }
+  | { type: "recipient_domains"; args: string[]; allowedDomains: string[]; allowedAddresses?: string[] }
   | { type: string; [key: string]: unknown };
 
 export interface Decision {

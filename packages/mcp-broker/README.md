@@ -90,6 +90,48 @@ deliberate limit, not a missing feature. The moment you need any of those, you'v
 outgrown a single file, and that's what the hosted plane is for. This format
 will never grow them.
 
+## Restrict who a tool can send to
+
+For a tool that sends something (email, invites, shares), name the arguments
+that hold recipients and the domains or exact addresses they're allowed to reach:
+
+```yaml
+  - tool: send_email
+    effect: allow
+    credential: mail_send
+    recipient_args: to, cc, bcc
+    allowed_domains: acme.com, partner.io
+    allowed_addresses: ceo@partner-bank.com
+```
+
+Every recipient in those arguments must be at a listed domain or be a listed
+address, or the call is
+denied before it runs. It's a hard deny, never an approval prompt, and it's
+checked before any approval so nobody is asked to approve a send the policy
+already forbids. The rules:
+
+- Arguments can be a string, a comma- or semicolon-separated list,
+  `Name <address>` forms, or an array of strings. Dotted paths
+  (`message.to`) reach into nested arguments.
+- `allowed_domains` and `allowed_addresses` are a union, and either one alone
+  is enough. Use addresses when a whole domain is too broad, for example one
+  contact at a client's bank. Addresses match exactly: the local part ignores
+  case, and the domain is compared the same way as `allowed_domains`.
+- Domains match exactly. `acme.com` does not admit `mail.acme.com`; list
+  subdomains one by one. Unicode domains are compared in their IDNA form.
+- It fails closed. A recipient that isn't a string, an address with no `@`,
+  or a call where none of the named arguments holds a recipient (usually a
+  misnamed argument) is denied.
+- The audit event records the offending domains, never the addresses.
+
+Custom policy sources can use this too: return a
+`{ type: "recipient_domains", args, allowedDomains, allowedAddresses? }` obligation on the
+decision and the broker enforces it.
+
+This protects one server, with a rule its author wrote. The hosted AgentValet
+plane enforces recipient limits outside the agent, for every agent and
+platform, from a list that org admins manage and agents can't edit.
+
 ## The four interfaces
 
 Every escape hatch is an interface, and the hosted implementations are just the

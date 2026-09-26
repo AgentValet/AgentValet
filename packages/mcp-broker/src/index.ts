@@ -46,6 +46,8 @@ export { FileSecretSource, decryptSecretsFile } from "./secrets/file-source.js";
 export { JsonlAuditSink, MemoryAuditSink } from "./audit/jsonl-sink.js";
 export { CliApprovalProvider } from "./approval/cli-provider.js";
 export { argsFingerprint, canonicalize } from "./fingerprint.js";
+export { checkRecipientDomains, emailDomain, normaliseAddress, normaliseDomain } from "./recipients.js";
+export type { RecipientCheck, RecipientDomainsObligation } from "./recipients.js";
 export { resolvePolicySource, resolveSecretSource, resolveAuditSink } from "./sources.js";
 
 // Hosted (agentvalet:) sources and their shared client. The paid layer speaks

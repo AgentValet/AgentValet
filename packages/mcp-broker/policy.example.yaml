@@ -22,3 +22,13 @@ rules:
   - tool: delete_repo
     effect: require_approval
     credential: github_admin
+
+  # A tool that sends mail: every address in to, cc and bcc must be at one of
+  # the listed domains or be one of the listed addresses, or the call is denied
+  # before it runs. Subdomains must be listed one by one.
+  - tool: send_email
+    effect: allow
+    credential: mail_send
+    recipient_args: to, cc, bcc
+    allowed_domains: acme.com, partner.io
+    allowed_addresses: ceo@partner-bank.com

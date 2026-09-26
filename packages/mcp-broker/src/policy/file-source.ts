@@ -55,13 +55,28 @@ function toEvaluationInput(doc: PolicyDoc, req: AccessRequest): EvaluationInput 
     callerRole: "member",
     requestedScopeTags: [],
     requested: { platformId: server, scopeId: req.resource.tool },
+    // A real call is being decided. The file: format has no predicate key
+    // (parsePolicy rejects unknown rule keys) and the open-core broker ships
+    // no CEL engine, so this only matters defensively: any predicated rule
+    // that ever reached here would fail closed rather than get discovery
+    // defaults. Hosted-plane predicates are the proxy's job (06).
+    mode: "call",
   };
 }
 
 function obligationsFor(doc: PolicyDoc, tool: string): Obligation[] {
   const rule = doc.rules.find((r) => r.tool === tool);
-  if (rule?.credential) return [{ type: "credential", ref: rule.credential }];
-  return [];
+  const out: Obligation[] = [];
+  if (rule?.credential) out.push({ type: "credential", ref: rule.credential });
+  if (rule?.recipients) {
+    out.push({
+      type: "recipient_domains",
+      args: rule.recipients.args,
+      allowedDomains: rule.recipients.allowedDomains,
+      ...(rule.recipients.allowedAddresses && { allowedAddresses: rule.recipients.allowedAddresses }),
+    });
+  }
+  return out;
 }
 
 export class FilePolicySource implements PolicySource {
