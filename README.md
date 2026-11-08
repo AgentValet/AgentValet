@@ -14,9 +14,9 @@
 
 # AgentValet
 
-Identity and credential governance broker for AI agents and MCP servers. It gives every agent its own cryptographic identity, scoped and short-lived credentials per platform, human approval gates on the actions that matter, and an immutable audit log of everything it did.
+AgentValet is a credential broker for AI agents and MCP servers. Your agents never hold your keys. It gives every agent its own cryptographic identity, scoped and short-lived credentials per platform, human approval gates on the actions that matter, and an append-only, policy-stamped audit log of everything it did.
 
-**Open core.** This repo holds the open-source MIT-licensed client surface: the MCP server, the CLI, the Claude Desktop bundle, and the runtime adapters. The managed proxy runs the credential vault, the policy engine, and the audit store. A self-host reference for the proxy is on the roadmap.
+**Open core.** This repo holds the open-source MIT-licensed client surface: the MCP server, the CLI, the Claude Desktop bundle, and the runtime adapters. The managed proxy runs the credential vault, the policy engine, and the audit store.
 
 <!-- TODO: add the awesome-mcp-servers listing link once the PR is merged: https://github.com/punkpeye/awesome-mcp-servers/pull/{{PR_NUMBER}} -->
 Live at [agentvalet.ai](https://agentvalet.ai). Docs at [docs.agentvalet.ai](https://docs.agentvalet.ai).
@@ -94,10 +94,9 @@ Credentials use envelope encryption: a unique AES-256 data key per credential, w
 - Per-agent RS256 cryptographic identity, SPIFFE-format URIs, 60-second signed JWTs
 - Deny-by-default scopes, granular per-agent-per-platform-per-action grants
 - Human-in-the-loop approval for destructive or financial scopes, one-click magic-link
-- Immutable, append-only audit log, filterable and exportable
+- Append-only, policy-stamped audit log, filterable and exportable
 - Three-strike circuit breaker that auto-suspends a misbehaving agent
 - Native MCP server plus a one-command CLI
-- Self-hostable: PostgreSQL-backed, runs in your own infrastructure
 - Standards-aligned: SPIFFE, RFC 7591 Dynamic Client Registration, AuthZEN 1.0, IETF AIMS
 
 ## How AgentValet compares
@@ -112,7 +111,7 @@ Honest framing. These are strong tools that reached agent governance from an adj
 | Open source | Open core, MIT* | No | No | Core open source |
 | Standout strength | AIMS-aligned, approval gates, audit, cheap entry | Attestation-based identity | Distributed fragments cryptography | Network-level interception |
 
-\* The client surface (MCP server, CLI, bundle, adapters) is MIT in this repo. The proxy is a managed service today, with a self-host reference on the roadmap.
+\* The client surface (MCP server, CLI, bundle, adapters) is MIT in this repo. The proxy is a managed service.
 
 If you already run Aembit or Akeyless at enterprise scale, AgentValet is not trying to replace your identity provider. If you are a developer or small team shipping agents this week, AgentValet is built for you.
 
@@ -138,7 +137,7 @@ Open source in this repo, MIT licensed: the MCP server, the `@agentvalet/registe
 
 The two MCP packages are mirror images of each other: `@agentvalet/mcp-server` lets an agent call platforms through the AgentValet proxy, whereas `@agentvalet/mcp-broker` lets you embed AgentValet policy and credential enforcement inside your own MCP server, with a genuinely useful local mode and zero required account.
 
-Managed service today: the proxy that holds the credential vault, runs the policy engine, and writes the audit log. A self-host reference for the proxy is on the roadmap. See `CONTRIBUTING.md` for local development of the open packages.
+Managed service today: the proxy that holds the credential vault, runs the policy engine, and writes the audit log. See `CONTRIBUTING.md` for local development of the open packages.
 
 ## Security
 
